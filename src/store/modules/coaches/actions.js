@@ -24,7 +24,8 @@ context.commit('registerCoach',{...coachData,id:userId})
  const response= await fetch(`https://coach-finder-b2662-default-rtdb.firebaseio.com/coaches.json`);
  const responseData=await response.json()
    if (!response.ok) {
-    ///...
+    const error=new Error(responseData.message||'fail to fetch')
+    return error;
    } 
 const coaches= [];
 for (const key in responseData) {

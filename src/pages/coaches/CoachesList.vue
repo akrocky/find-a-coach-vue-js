@@ -1,4 +1,7 @@
 <template>
+  <base-dailog :show="!!error" title="An error occured" @close="handleError">
+    <p>{{ error }}</p>
+  </base-dailog>
   <section>
     <coach-filter @change-filter="setFilters"></coach-filter>
   </section>
@@ -10,7 +13,10 @@
           Register as Coach
         </base-button>
       </div>
-      <ul v-if="hasCoaches">
+      <div v-if="isLoading">
+        <base-spinner></base-spinner>
+      </div>
+      <ul v-else-if="hasCoaches">
         <coach-item
           v-for="coach in filterCoaches"
           :key="coach.id"
@@ -30,10 +36,14 @@
 import CoachFilter from '../../components/coaches/CoachFilter.vue';
 import CoachItem from '../../components/coaches/CoachItem.vue';
 import BaseButton from '../../components/ui/BaseButton.vue';
+import BaseDailog from '../../components/ui/BaseDialog.vue';
+import BaseSpinner from '../../components/ui/BaseSpinner.vue';
 export default {
-  components: { CoachItem, BaseButton, CoachFilter },
+  components: { CoachItem, BaseButton, CoachFilter, BaseSpinner, BaseDailog },
   data() {
     return {
+      isLoading: false,
+      error: null,
       activeFilters: {
         frontend: true,
         backend: true,
@@ -60,7 +70,7 @@ export default {
       return showCoaches;
     },
     hasCoaches() {
-      return this.$store.getters['coaches/hasCoaches'];
+      return !this.isLoading && this.$store.getters['coaches/hasCoaches'];
     },
     isCoach() {
       return this.$store.getters['coaches/isCoach'];
@@ -70,8 +80,18 @@ export default {
     setFilters(updatedFilters) {
       this.activeFilters = updatedFilters;
     },
-    loadCoaches() {
-      this.$store.dispatch('coaches/loadCoaches');
+    async loadCoaches() {
+      this.isLoading = true;
+      try {
+        await this.$store.dispatch('coaches/loadCoaches');
+      } catch (error) {
+        this.error = error.message || 'something went wrong';
+      }
+
+      this.isLoading = false;
+    },
+    handleError() {
+      this.error = null;
     },
   },
   created() {
