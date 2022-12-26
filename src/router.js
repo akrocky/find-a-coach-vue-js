@@ -27,7 +27,7 @@ const router=createRouter({
         
       },
       {
-        path:'/request',
+        path:'/requests',
         component:RequestRecived
       },
       {
