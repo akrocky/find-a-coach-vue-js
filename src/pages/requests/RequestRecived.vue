@@ -1,10 +1,14 @@
 <template>
   <section>
+    <base-dailog :show="!!error" title="An error occured" @close="handleError">
+      <p>{{ error }}</p>
+    </base-dailog>
     <base-card>
       <header>
         <h2>Requests Recived</h2>
       </header>
-      <ul v-if="hasRequest">
+      <base-spinner v-if="isLoading"> </base-spinner>
+      <ul v-else-if="hasRequest">
         <request-item
           v-for="req in recivedRequests"
           :key="req.id"
@@ -20,8 +24,17 @@
 
 <script>
 import RequestItem from '../../components/requests/RequestItem.vue';
+import BaseDailog from '../../components/ui/BaseDialog.vue';
+import BaseSpinner from '../../components/ui/BaseSpinner.vue';
+
 export default {
-  components: { RequestItem },
+  components: { RequestItem, BaseDailog, BaseSpinner },
+  data() {
+    return {
+      isLoading: false,
+      error: null,
+    };
+  },
   computed: {
     recivedRequests() {
       return this.$store.getters['requests/requests'];
@@ -29,6 +42,23 @@ export default {
     hasRequest() {
       return this.$store.getters['requests/hasRequests'];
     },
+  },
+  methods: {
+    async loadRequest() {
+      this.isLoading = true;
+      try {
+        await this.$store.dispatch('requests/fetchRequests');
+      } catch (error) {
+        this.error = error.message || 'something failed;';
+      }
+      this.isLoading = false;
+    },
+    handleError() {
+      this.error = null;
+    },
+  },
+  created() {
+    this.loadRequest();
   },
 };
 </script>

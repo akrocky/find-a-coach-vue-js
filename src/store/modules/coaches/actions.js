@@ -10,7 +10,8 @@ const coachData={
     areas:data.areas,
 
 };
-const response=await fetch(`https://coach-finder-b2662-default-rtdb.firebaseio.com/coaches/${userId}.json`,{
+const token=context.rootGetters.token;
+const response=await fetch(`https://coach-finder-b2662-default-rtdb.firebaseio.com/coaches/${userId}.json?auth=`+token,{
 method:'PUT',
 body:JSON.stringify(coachData)
 });
@@ -20,7 +21,10 @@ if (!response.ok) {
 }
 context.commit('registerCoach',{...coachData,id:userId})
     },
-    async loadCoaches(context){
+    async loadCoaches(context,payload){
+      if (!payload.forceRfresh && !context.getters.shouldUpdate) {
+        return ;
+      }
  const response= await fetch(`https://coach-finder-b2662-default-rtdb.firebaseio.com/coaches.json`);
  const responseData=await response.json()
    if (!response.ok) {
@@ -40,6 +44,7 @@ for (const key in responseData) {
   coaches.push(coach);
 }
 context.commit('setCoaches',coaches);
+context.commit('setFetchTimestamps');
 
 
 
